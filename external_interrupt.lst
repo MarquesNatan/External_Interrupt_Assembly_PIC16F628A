@@ -1,0 +1,471 @@
+MPASM  5.51            EXTERNAL_INTERRUPT.ASM   6-29-2021  0:03:34         PAGE  1
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                      00001 ;               ; ======================================================================
+                      00002                 ;                                                                Leitura de um botão    
+                                                            |
+                      00003                 ; MCU: PIC16F628A       Clock: 4Mz                                                      
+                                                            |
+                      00004                 ; ======================================================================
+                      00005                 
+Warning[215]: Processor superseded by command line.  Verify processor symbol.
+                      00006                 list p=p16f628a
+                      00007                 
+                      00008                 #include <p16f628a.inc>                 ; endereços de memória
+                      00001         LIST
+                      00002 
+                      00003 ;==========================================================================
+                      00004 ;  MPASM PIC16F628A processor include
+                      00005 ; 
+                      00006 ;  (c) Copyright 1999-2013 Microchip Technology, All rights reserved
+                      00007 ;==========================================================================
+                      00008 
+                      00385         LIST
+                      00009                 
+                      00010                 ;============================= FUSE BITS CONFIG =============================
+2007   3F21           00011                 __config _XT_OSC & _WDT_OFF & _PWRTE_ON & _MCLRE_ON & _BOREN_OFF & _LVP_OFF & _CP_OFF & 
+                            _CPD_OFF
+                      00012                 
+                      00013                 ; ============================= Memory bank selection ======================
+                      00014                 #define         bank0   bcf             STATUS,RP0
+                      00015                 #define         bank1   bsf             STATUS,RP0
+                      00016                 
+                      00017                 ; ============================= Hardware Mapping ===========================
+                      00018                 #define         output                  PORTB,RB1
+                      00019                 #define         input                   PORTB.RB0
+                      00020                 
+                      00021                 ; ============================= General Purpose Registers  =================
+                      00022                         cblock          H'20'
+  00000020            00023                                 W_TEMP                  
+  00000021            00024                                 STATUS_TEMP
+                      00025                                 
+  00000022            00026                                 bounce_count
+  00000023            00027                                 control_loop
+                      00028                                 
+  00000024            00029                                 first_button
+  00000025            00030                                 last_button
+                      00031                         endc                    
+                      00032                 ; ============================= Reset Vector =============================
+0000                  00033                         org                     H'0000'
+0000   2818           00034                         goto start
+                      00035                 
+                      00036                 ; ============================= Interrupt Vector =========================
+0004                  00037                         org             H'0004'
+                      00038                         
+                      00039                         ; -------------- Context Saving ----------------
+0004   00A0           00040                         movwf           W_TEMP                                                          
+MPASM  5.51            EXTERNAL_INTERRUPT.ASM   6-29-2021  0:03:34         PAGE  2
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+0005   0E03           00041                         swapf           STATUS,w                                                        
+                      00042                         
+0006   1283           00043                         bank0                                                                           
+                                    
+0007   00A1           00044                         movwf           STATUS_TEMP                                                     
+                      00045                 
+Warning[207]: Found label after column 1. (external_interrupt)
+0008                  00046                 external_interrupt:     
+                      00047                         ; --------------  Interrupt Flag test ----------
+0008   1C8B           00048                         btfss           INTCON,INTF                                                     
+0009   2813           00049                         goto            exit_isr                                                        
+                      00050                         
+000A   108B           00051                         bcf             INTCON,INTF                                                     
+                      00052                         
+                      00053                         ; -------------- Button Trigger Test -----------
+000B   0806           00054                         movf            PORTB,w                                                         
+000C   00A4           00055                         movwf           first_button                                            
+                      00056                         
+000D   2023           00057                         call            debouncing                                                      
+                      00058                                                                                                         
+                                            
+                      00059                         
+000E   0806           00060                         movf            PORTB,w                                                         
+Warning[202]: Argument out of range.  Least significant bits used.
+000F   06A4           00061                         xorwf           first_button, last_button                       
+                      00062                                                                                                         
+                                            
+                      00063                         
+0010   1C25           00064                         btfss           last_button,0                                           
+                      00065                                                                                                         
+                                            
+                      00066                                                                                                         
+                                            
+                      00067                 
+0011   0986           00068                         comf            output                                                          
+                      00069                         
+0012   2813           00070                         goto            exit_isr                                                        
+                      00071                         
+                      00072                         ; -------------- context recovery ----------------
+Warning[207]: Found label after column 1. (exit_isr)
+0013                  00073                 exit_isr:
+                      00074                 
+0013   0E21           00075                         swapf           STATUS_TEMP,w                           
+                      00076                 
+0014   0083           00077                         movwf           STATUS                                          
+                      00078                 
+0015   0EA0           00079                         swapf           W_TEMP,f                                        
+0016   0E20           00080                         swapf           W_TEMP,w                                        
+                      00081                                                                                                         
+                      00082                         
+0017   0009           00083                         retfie                                                                  
+                      00084                 
+                      00085                 
+MPASM  5.51            EXTERNAL_INTERRUPT.ASM   6-29-2021  0:03:34         PAGE  3
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                      00086                 ; ============================= Init Registers ===========================
+Warning[207]: Found label after column 1. (start)
+0018                  00087                 start:
+0018   1683           00088                         bank1                                                                   
+                      00089                         
+0019   30FD           00090                         movlw           H'FD'                                           
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+001A   0086           00091                         movwf           TRISB                                           
+                      00092                         
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+001B   1701           00093                         bsf             OPTION_REG,6                            
+                      00094                                                                                                         
+                      00095                         
+001C   1283           00096                         bank0                                                                   
+                      00097                         
+001D   3090           00098                         movlw           H'90'                                           
+001E   008B           00099                         movwf           INTCON                                          
+                      00100                         
+001F   3007           00101                         movlw   H'07'                                                   
+0020   009F           00102                         movwf   CMCON                                                   
+                      00103                                                                                                         
+                      00104                         
+0021   1086           00105                         bcf                     output                                          
+                      00106                 
+                      00107                 ; ============================= Função Main ============================= 
+Warning[207]: Found label after column 1. (main)
+0022                  00108                 main:           
+0022   2822           00109                         goto main
+                      00110                         
+                      00111                         
+                      00112                 ; ============================= Debouncing de 100 ms =====================
+Warning[207]: Found label after column 1. (debouncing)
+0023                  00113                 debouncing:
+                      00114                 
+0023   3064           00115                         movlw           H'64'                                   ; 100d
+0024   00A3           00116                         movwf           control_loop                    
+                      00117                         
+Warning[207]: Found label after column 1. (aux1)
+0025                  00118                 aux1:
+                      00119                 
+0025   30FA           00120                         movlw           H'FA'                   
+0026   00A2           00121                         movwf           bounce_count                    
+                      00122                         
+Warning[207]: Found label after column 1. (aux2)
+0027                  00123                 aux2:
+0027   0000           00124                         nop                                                                     
+                      00125                         
+Message[305]: Using default destination of 1 (file).
+0028   0BA2           00126                         decfsz          bounce_count                    
+0029   2827           00127                         goto            aux2                                    
+                      00128                         
+Message[305]: Using default destination of 1 (file).
+002A   0BA3           00129                         decfsz          control_loop                    
+MPASM  5.51            EXTERNAL_INTERRUPT.ASM   6-29-2021  0:03:34         PAGE  4
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+002B   2825           00130                         goto            aux1                                    
+                      00131                         
+002C   0008           00132                         return                                                          
+                      00133                         
+                      00134                         end                                                                     
+MPASM  5.51            EXTERNAL_INTERRUPT.ASM   6-29-2021  0:03:34         PAGE  5
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+ADDEN                             00000003
+ADEN                              00000003
+BRGH                              00000002
+C                                 00000000
+C1INV                             00000004
+C1OUT                             00000006
+C2INV                             00000005
+C2OUT                             00000007
+CCP1CON                           00000017
+CCP1IE                            00000002
+CCP1IF                            00000002
+CCP1M0                            00000000
+CCP1M1                            00000001
+CCP1M2                            00000002
+CCP1M3                            00000003
+CCP1X                             00000005
+CCP1Y                             00000004
+CCPR1                             00000015
+CCPR1H                            00000016
+CCPR1L                            00000015
+CIS                               00000003
+CM0                               00000000
+CM1                               00000001
+CM2                               00000002
+CMCON                             0000001F
+CMIE                              00000006
+CMIF                              00000006
+CREN                              00000004
+CSRC                              00000007
+DATA_CP_OFF                       00003FFF
+DATA_CP_ON                        00003EFF
+DC                                00000001
+EEADR                             0000009B
+EECON1                            0000009C
+EECON2                            0000009D
+EEDATA                            0000009A
+EEIE                              00000007
+EEIF                              00000007
+F                                 00000001
+FERR                              00000002
+FSR                               00000004
+GIE                               00000007
+INDF                              00000000
+INTCON                            0000000B
+INTE                              00000004
+INTEDG                            00000006
+INTF                              00000001
+IRP                               00000007
+NOT_BO                            00000000
+NOT_BOD                           00000000
+NOT_BOR                           00000000
+NOT_PD                            00000003
+NOT_POR                           00000001
+MPASM  5.51            EXTERNAL_INTERRUPT.ASM   6-29-2021  0:03:34         PAGE  6
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+NOT_RBPU                          00000007
+NOT_T1SYNC                        00000002
+NOT_TO                            00000004
+OERR                              00000001
+OPTION_REG                        00000081
+OSCF                              00000003
+PCL                               00000002
+PCLATH                            0000000A
+PCON                              0000008E
+PEIE                              00000006
+PIE1                              0000008C
+PIR1                              0000000C
+PORTA                             00000005
+PORTB                             00000006
+PR2                               00000092
+PS0                               00000000
+PS1                               00000001
+PS2                               00000002
+PSA                               00000003
+RA0                               00000000
+RA1                               00000001
+RA2                               00000002
+RA3                               00000003
+RA4                               00000004
+RA5                               00000005
+RA6                               00000006
+RA7                               00000007
+RB0                               00000000
+RB1                               00000001
+RB2                               00000002
+RB3                               00000003
+RB4                               00000004
+RB5                               00000005
+RB6                               00000006
+RB7                               00000007
+RBIE                              00000003
+RBIF                              00000000
+RCIE                              00000005
+RCIF                              00000005
+RCREG                             0000001A
+RCSTA                             00000018
+RD                                00000000
+RP0                               00000005
+RP1                               00000006
+RX9                               00000006
+RX9D                              00000000
+SPBRG                             00000099
+SPEN                              00000007
+SREN                              00000005
+STATUS                            00000003
+STATUS_TEMP                       00000021
+SYNC                              00000004
+T0CS                              00000005
+MPASM  5.51            EXTERNAL_INTERRUPT.ASM   6-29-2021  0:03:34         PAGE  7
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+T0IE                              00000005
+T0IF                              00000002
+T0SE                              00000004
+T1CKPS0                           00000004
+T1CKPS1                           00000005
+T1CON                             00000010
+T1OSCEN                           00000003
+T2CKPS0                           00000000
+T2CKPS1                           00000001
+T2CON                             00000012
+TMR0                              00000001
+TMR0IE                            00000005
+TMR0IF                            00000002
+TMR1                              0000000E
+TMR1CS                            00000001
+TMR1H                             0000000F
+TMR1IE                            00000000
+TMR1IF                            00000000
+TMR1L                             0000000E
+TMR1ON                            00000000
+TMR2                              00000011
+TMR2IE                            00000001
+TMR2IF                            00000001
+TMR2ON                            00000002
+TOUTPS0                           00000003
+TOUTPS1                           00000004
+TOUTPS2                           00000005
+TOUTPS3                           00000006
+TRISA                             00000085
+TRISA0                            00000000
+TRISA1                            00000001
+TRISA2                            00000002
+TRISA3                            00000003
+TRISA4                            00000004
+TRISA5                            00000005
+TRISA6                            00000006
+TRISA7                            00000007
+TRISB                             00000086
+TRISB0                            00000000
+TRISB1                            00000001
+TRISB2                            00000002
+TRISB3                            00000003
+TRISB4                            00000004
+TRISB5                            00000005
+TRISB6                            00000006
+TRISB7                            00000007
+TRMT                              00000001
+TX9                               00000006
+TX9D                              00000000
+TXEN                              00000005
+TXIE                              00000004
+TXIF                              00000004
+TXREG                             00000019
+MPASM  5.51            EXTERNAL_INTERRUPT.ASM   6-29-2021  0:03:34         PAGE  8
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+TXSTA                             00000098
+VR0                               00000000
+VR1                               00000001
+VR2                               00000002
+VR3                               00000003
+VRCON                             0000009F
+VREN                              00000007
+VROE                              00000006
+VRR                               00000005
+W                                 00000000
+WR                                00000001
+WREN                              00000002
+WRERR                             00000003
+W_TEMP                            00000020
+Z                                 00000002
+_BODEN_OFF                        00003FBF
+_BODEN_ON                         00003FFF
+_BOREN_OFF                        00003FBF
+_BOREN_ON                         00003FFF
+_CONFIG                           00002007
+_CPD_OFF                          00003FFF
+_CPD_ON                           00003EFF
+_CP_OFF                           00003FFF
+_CP_ON                            00001FFF
+_DEVID1                           00002006
+_ER_OSC_CLKOUT                    00003FFF
+_ER_OSC_NOCLKOUT                  00003FFE
+_EXTCLK_OSC                       00003FEF
+_FOSC_ECIO                        00003FEF
+_FOSC_EXTRCCLK                    00003FFF
+_FOSC_EXTRCIO                     00003FFE
+_FOSC_HS                          00003FEE
+_FOSC_INTOSCCLK                   00003FFD
+_FOSC_INTOSCIO                    00003FFC
+_FOSC_LP                          00003FEC
+_FOSC_XT                          00003FED
+_HS_OSC                           00003FEE
+_IDLOC0                           00002000
+_IDLOC1                           00002001
+_IDLOC2                           00002002
+_IDLOC3                           00002003
+_INTOSC_OSC_CLKOUT                00003FFD
+_INTOSC_OSC_NOCLKOUT              00003FFC
+_INTRC_OSC_CLKOUT                 00003FFD
+_INTRC_OSC_NOCLKOUT               00003FFC
+_LP_OSC                           00003FEC
+_LVP_OFF                          00003F7F
+_LVP_ON                           00003FFF
+_MCLRE_OFF                        00003FDF
+_MCLRE_ON                         00003FFF
+_PWRTE_OFF                        00003FFF
+_PWRTE_ON                         00003FF7
+_RC_OSC_CLKOUT                    00003FFF
+MPASM  5.51            EXTERNAL_INTERRUPT.ASM   6-29-2021  0:03:34         PAGE  9
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+_RC_OSC_NOCLKOUT                  00003FFE
+_WDTE_OFF                         00003FFB
+_WDTE_ON                          00003FFF
+_WDT_OFF                          00003FFB
+_WDT_ON                           00003FFF
+_XT_OSC                           00003FED
+__16F628A                         00000001
+__DEBUG                           1
+aux1                              00000025
+aux2                              00000027
+bank0                             bcf             STATUS,RP0
+bank1                             bsf             STATUS,RP0
+bounce_count                      00000022
+control_loop                      00000023
+debouncing                        00000023
+exit_isr                          00000013
+external_interrupt                00000008
+first_button                      00000024
+input                             PORTB.RB0
+last_button                       00000025
+main                              00000022
+output                            PORTB,RB1
+start                             00000018
+
+
+MEMORY USAGE MAP ('X' = Used,  '-' = Unused)
+
+0000 : X---XXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXXX--- ----------------
+2000 : -------X-------- ---------------- ---------------- ----------------
+
+All other memory blocks unused.
+
+Program Memory Words Used:    42
+Program Memory Words Free:  2006
+
+
+Errors   :     0
+Warnings :     9 reported,     0 suppressed
+Messages :     4 reported,     0 suppressed
+
+

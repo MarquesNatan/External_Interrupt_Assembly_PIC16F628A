@@ -1,0 +1,12 @@
+### Assembler ###
+*.exe
+*.o
+*.obj
+*.bc
+*.cof
+*.err
+*.lst
+*.map
+*.mcp
+*.mcs
+*.mcw

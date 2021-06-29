@@ -1,0 +1,48 @@
+MPLINK 4.49, Linker
+Linker Map File - Created Tue Jun 29 00:03:37 2021
+
+                                 Section Info
+                  Section       Type    Address   Location Size(Bytes)
+                ---------  ---------  ---------  ---------  ---------
+                   .org_0       code   0x000000    program   0x000000
+                   .org_1       code   0x000000    program   0x000002
+                   .org_2       code   0x000004    program   0x000052
+.config_2007_EXTERNAL_INTERRUPT.O       code   0x002007    program   0x000002
+
+
+
+                              Program Memory Usage 
+                               Start         End      
+                           ---------   ---------      
+                            0x000000    0x000000      
+                            0x000004    0x00002c      
+                            0x002007    0x002007      
+            43 out of 2182 program addresses used, program memory utilization is 1%
+
+
+
+                              Symbols - Sorted by Name
+                     Name    Address   Location    Storage File                     
+                ---------  ---------  ---------  --------- ---------                
+                     aux1   0x000025    program     static C:\Users\Natan\Documents\IFG\9° período\Sistemas Microprocessados\external_interrupt\external_interrupt.asm
+                     aux2   0x000027    program     static C:\Users\Natan\Documents\IFG\9° período\Sistemas Microprocessados\external_interrupt\external_interrupt.asm
+               debouncing   0x000023    program     static C:\Users\Natan\Documents\IFG\9° período\Sistemas Microprocessados\external_interrupt\external_interrupt.asm
+                 exit_isr   0x000013    program     static C:\Users\Natan\Documents\IFG\9° período\Sistemas Microprocessados\external_interrupt\external_interrupt.asm
+       external_interrupt   0x000008    program     static C:\Users\Natan\Documents\IFG\9° período\Sistemas Microprocessados\external_interrupt\external_interrupt.asm
+                     main   0x000022    program     static C:\Users\Natan\Documents\IFG\9° período\Sistemas Microprocessados\external_interrupt\external_interrupt.asm
+                    start   0x000018    program     static C:\Users\Natan\Documents\IFG\9° período\Sistemas Microprocessados\external_interrupt\external_interrupt.asm
+
+
+
+                              Symbols - Sorted by Address
+                     Name    Address   Location    Storage File                     
+                ---------  ---------  ---------  --------- ---------                
+       external_interrupt   0x000008    program     static C:\Users\Natan\Documents\IFG\9° período\Sistemas Microprocessados\external_interrupt\external_interrupt.asm
+                 exit_isr   0x000013    program     static C:\Users\Natan\Documents\IFG\9° período\Sistemas Microprocessados\external_interrupt\external_interrupt.asm
+                    start   0x000018    program     static C:\Users\Natan\Documents\IFG\9° período\Sistemas Microprocessados\external_interrupt\external_interrupt.asm
+                     main   0x000022    program     static C:\Users\Natan\Documents\IFG\9° período\Sistemas Microprocessados\external_interrupt\external_interrupt.asm
+               debouncing   0x000023    program     static C:\Users\Natan\Documents\IFG\9° período\Sistemas Microprocessados\external_interrupt\external_interrupt.asm
+                     aux1   0x000025    program     static C:\Users\Natan\Documents\IFG\9° período\Sistemas Microprocessados\external_interrupt\external_interrupt.asm
+                     aux2   0x000027    program     static C:\Users\Natan\Documents\IFG\9° período\Sistemas Microprocessados\external_interrupt\external_interrupt.asm
+
+
